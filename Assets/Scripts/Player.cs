@@ -8,8 +8,8 @@ public class Player : MonoBehaviour
     [SerializeField] private float JumpForce;
     [SerializeField] private float RayDistance;
     [SerializeField] private GameObject BulletPrefab;
-    [SerializeField]private int Health = 5;
-    [SerializeField]private bool Grounded;
+    [SerializeField] private int Health = 5;
+    [SerializeField] private bool Grounded;
 
     private Rigidbody2D Rigidbody2D;
     private float Horizontal;

@@ -18,8 +18,6 @@ public class PerceptionBehaviours : MonoBehaviour
     [SerializeField] protected float threshold;
     protected Rigidbody rb;
     protected Collider[] eyesPerceibed, earsPerceibed;
-    protected BasicAgent basicAgent;
-    protected BasicAgent leadersInScene;
     [SerializeField] protected bool isFar = false;
     [SerializeField] protected bool isClose = false;
 
