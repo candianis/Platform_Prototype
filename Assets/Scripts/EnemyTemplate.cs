@@ -46,7 +46,8 @@ public class EnemyTemplate : MonoBehaviour
     [SerializeField] float attackRange;
     [SerializeField, Tooltip("How many seconds should the enemy wait before htting the player again")] 
     float attackCooldown;
-    private float timeLeftToRecover;
+    [SerializeField]
+    protected float timeLeftToRecover;
 
     void Start()
     {
@@ -83,25 +84,55 @@ public class EnemyTemplate : MonoBehaviour
 
         if (m_target != null)
         {
-            if (Vector2.Distance(transform.position, m_target.position) < attackRange)
-            {
-                if (timeLeftToRecover > 0)
-                    currentState = EnemyState.Recover;
-
-                else
-                    currentState = EnemyState.Attack;
-
-                return;
-            }
-            else
-                currentState = EnemyState.Pursuit;
-
+            HastTargetDecision();
+            return;
         }
 
-        else
-            currentState = EnemyState.Patrol;
+        WithoutTargetDecision();
+    }
 
+    void HastTargetDecision()
+    {
+        if (PursuitManager())
+            return;
 
+        if (RecoverManager())
+            return;
+
+        currentState = EnemyState.Attack;
+        LowerCooldown();
+    }
+
+    virtual protected bool PursuitManager()
+    {
+        if (Vector2.Distance(transform.position, m_target.position) > attackRange)
+        {
+            currentState = EnemyState.Pursuit;
+            return true;
+        }
+
+        return false;
+    }
+
+    virtual protected bool RecoverManager()
+    {
+        if (timeLeftToRecover > 0)
+        {
+            currentState = EnemyState.Recover;
+            return true;
+        }
+
+        return false;
+    }
+
+    virtual protected void LowerCooldown()
+    {
+
+    }
+
+    virtual protected void WithoutTargetDecision()
+    {
+        currentState = EnemyState.Patrol;
     }
 
     void PerceptionManager(Collider2D[] perceivedColliders, string tagToTarget)
@@ -136,7 +167,7 @@ public class EnemyTemplate : MonoBehaviour
                 break;
 
             case EnemyState.Attack:
-                Attack();
+                AttackManager();
                 break;
 
             case EnemyState.Recover:
@@ -169,6 +200,14 @@ public class EnemyTemplate : MonoBehaviour
     {
 
     }
+    /// <summary>
+    /// This function will be called when this enemy is in range of its target. This way you can add more attacks or behaviours.
+    /// Note: If you just want the enemy to attack when in range just call the father's base function 
+    /// </summary>
+    virtual protected void AttackManager()
+    {
+        Attack();
+    }
 
     /// <summary>
     /// Function to attack the player and start a cooldown
@@ -186,6 +225,7 @@ public class EnemyTemplate : MonoBehaviour
     virtual protected void Recover()
     {
         timeLeftToRecover -= Time.deltaTime;
+        LowerCooldown();
     }
 
     /// <summary>
@@ -208,6 +248,10 @@ public class EnemyTemplate : MonoBehaviour
                 Pursuit();
                 break;
 
+            case EnemyState.Attack:
+                AttackMovement();
+                break;
+
             default:
                 break;
         }
@@ -220,10 +264,20 @@ public class EnemyTemplate : MonoBehaviour
 
     virtual protected void Pursuit()
     {
+        transform.position = Vector2.SmoothDamp(transform.position, m_target.position, ref velocity, smoothFactor, speed);
+    }
+
+    virtual protected void AttackMovement()
+    {
 
     }
 
-    private void OnDrawGizmos()
+    void OnDrawGizmos()
+    {
+        GeneralGizmos();
+    }
+
+    protected void GeneralGizmos()
     {
         Gizmos.DrawWireSphere(perceptionOrigin.position, perceptionRadius);
         Gizmos.color = Color.red;
